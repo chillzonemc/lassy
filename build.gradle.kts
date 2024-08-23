@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "gg.mew.lassy"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 dependencies {
     compileOnly(libs.paper)

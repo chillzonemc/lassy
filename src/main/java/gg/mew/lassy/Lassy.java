@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.LeashHitch;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
@@ -96,42 +97,66 @@ public final class Lassy extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     private void onPlayerInteractEntity(final PlayerInteractEntityEvent event) {
-        if (!(event.getRightClicked() instanceof LivingEntity e))
-            return;
+        final var interactedByID = event.getPlayer().getUniqueId();
+        final var interactedOnID = event.getRightClicked().getUniqueId();
 
-        if (!canLeash(event.getPlayer(), e))
-            return;
+        if (event.getRightClicked() instanceof LivingEntity e) {
+            if (!canLeash(event.getPlayer(), e))
+                return;
 
-        if (!isAllowed(e)) {
-            return;
-        }
+            if (!isAllowed(e)) {
+                return;
+            }
 
-        //NOTE: Stop trading when attempting to leash
-        if (e instanceof Villager)
+            //NOTE: Stop trading when attempting to leash
+            if (e instanceof Villager)
+                event.setCancelled(true);
+
+            Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+                final var interactedBy = Bukkit.getPlayer(interactedByID);
+                final var interactedOn = (LivingEntity) Bukkit.getEntity(interactedOnID);
+
+                if (interactedBy == null || interactedOn == null)
+                    return;
+
+                if (!canLeash(interactedBy, interactedOn))
+                    return;
+
+                interactedBy.getInventory().removeItemAnySlot(new ItemStack(Material.LEAD, 1));
+
+                interactedOn.setLeashHolder(interactedBy);
+
+                if (getConfig().getBoolean("notify.allowed")) {
+                    event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(Objects.requireNonNull(this.messages.getString("allowed")),
+                            Placeholder.unparsed("entity", interactedOn.getType().getKey().asString())));
+                }
+            }, 1);
+        } else if (event.getRightClicked() instanceof LeashHitch e) {
             event.setCancelled(true);
 
-        final var interactedByID = event.getPlayer().getUniqueId();
-        final var interactedOnID = e.getUniqueId();
+            Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+                final var interactedBy = Bukkit.getPlayer(interactedByID);
+                final var interactedOn = Bukkit.getEntity(interactedOnID);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
-            final var interactedBy = Bukkit.getPlayer(interactedByID);
-            final var interactedOn = (LivingEntity) Bukkit.getEntity(interactedOnID);
+                if (interactedBy == null || interactedOn == null)
+                    return;
 
-            if (interactedBy == null || interactedOn == null)
-                return;
+                final var nearbyEntities = e.getNearbyEntities(10, 10, 10);
 
-            if (!canLeash(interactedBy, interactedOn))
-                return;
+                for (final var entity : nearbyEntities) {
+                    if (!(entity instanceof LivingEntity living))
+                        continue;
 
-            interactedBy.getInventory().removeItemAnySlot(new ItemStack(Material.LEAD, 1));
+                    if (!living.isLeashed() || living.getLeashHolder() != interactedOn) {
+                        continue;
+                    }
 
-            interactedOn.setLeashHolder(interactedBy);
+                    living.setLeashHolder(interactedBy);
+                }
 
-            if (getConfig().getBoolean("notify.allowed")) {
-                event.getPlayer().sendMessage(MiniMessage.miniMessage().deserialize(Objects.requireNonNull(this.messages.getString("allowed")),
-                        Placeholder.unparsed("entity", interactedOn.getType().getKey().asString())));
-            }
-        }, 1);
+                interactedOn.remove();
+            }, 1);
+        }
     }
 
 }

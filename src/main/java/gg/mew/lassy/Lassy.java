@@ -31,7 +31,7 @@ import static gg.mew.lassy.Lassy.PERMISSION_RELOAD;
 import static gg.mew.lassy.Lassy.PERMISSION_USE;
 
 @Getter
-@Plugin(name = "Lassy", version = "1.0")
+@Plugin(name = "Lassy", version = "1.1")
 @ApiVersion(ApiVersion.Target.v1_20)
 @Permissions(value = {
         @Permission(name = PERMISSION_RELOAD, desc = "Allows the holder to reload the Lassy config"),

@@ -1,0 +1,5 @@
+allow:
+  - minecraft:villager
+
+notify:
+  allowed: false

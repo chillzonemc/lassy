@@ -1,0 +1,13 @@
+[versions]
+paper = "1.21.1-R0.1-SNAPSHOT"
+plugin-annotations = "1.2.3-SNAPSHOT"
+acf-paper = "0.5.1-SNAPSHOT"
+shadow = "8.3.0"
+
+[libraries]
+paper = { module = "io.papermc.paper:paper-api", version.ref = "paper" }
+plugin-annotations = { module = "org.spigotmc:plugin-annotations", version.ref  = "plugin-annotations" }
+acf-paper = { module = "co.aikar:acf-paper", version.ref = "acf-paper" }
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

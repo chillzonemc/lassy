@@ -1,5 +1,13 @@
+# Entities allowed to be leashed, additional to entities that can be leashed in vanilla Minecraft.
 allow:
   - minecraft:villager
 
+# Entities will teleport with the player when true
+teleport-with-entities: false
+
+# Delay between running the cache cleanup task, in ticks. 20 ticks = 1 second, default is 1 minute.
+cleanup-cache-every: 1200
+
 notify:
+  # Notifies player that they leashed an entity if that entity is on the allow list
   allowed: false
